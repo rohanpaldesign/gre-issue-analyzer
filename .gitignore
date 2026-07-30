@@ -1,0 +1,14 @@
+node_modules/
+.next/
+dist/
+out/
+.env
+.env.local
+.env*.local
+*.log
+.vercel
+
+# Extracted ETS source material and authored seed content.
+# All of this lives in the database, never in git.
+seed-data/
+*.pdf
