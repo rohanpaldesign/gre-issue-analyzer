@@ -12,3 +12,6 @@ out/
 # All of this lives in the database, never in git.
 seed-data/
 *.pdf
+
+.vercel
+.env*
