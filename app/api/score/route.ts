@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-// @ts-expect-error the scoring engine is plain JS with JSDoc types
-import { scoreEssay } from '@/lib/scoring/index.mjs';
+import { scoreEssay, type TopicInput } from '@/lib/scoring';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,7 +8,7 @@ export const maxDuration = 30;
 
 /** Score an essay against the ETS rubric and the GregMat structure. */
 export async function POST(request: Request) {
-  let body: { essay?: string; topic?: unknown };
+  let body: { essay?: string; topic?: TopicInput | null };
   try {
     body = await request.json();
   } catch {
