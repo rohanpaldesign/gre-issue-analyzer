@@ -14,10 +14,7 @@
     "calibrate": "node scripts/calibrate.mjs"
   },
   "dependencies": {
-    "@libsql/client": "^0.14.0",
-    "dictionary-en": "^4.0.0",
     "next": "14.2.29",
-    "nspell": "^2.1.5",
     "react": "^18",
     "react-dom": "^18"
   },
