@@ -19,6 +19,34 @@ async function readOptionalJson(name) {
   }
 }
 
+/**
+ * Merge every guidance shard into one list.
+ *
+ * Authoring runs as several parallel processes over different id ranges, each
+ * checkpointing to its own file, so the seeder collects whatever shards exist
+ * and deduplicates by topic. That also makes a partial run seedable: whatever
+ * finished can go to the database while the rest is still being written.
+ */
+async function readGuidanceShards() {
+  const { readdir } = await import('node:fs/promises');
+  let files;
+  try {
+    files = await readdir(SEED_DIR);
+  } catch {
+    return null;
+  }
+
+  const shards = files.filter((f) => /^guidance(-[\d-]+)?\.json$/.test(f)).sort();
+  if (shards.length === 0) return null;
+
+  const byTopic = new Map();
+  for (const shard of shards) {
+    const entries = (await readOptionalJson(shard)) ?? [];
+    for (const entry of entries) byTopic.set(entry.topicId, entry);
+  }
+  return [...byTopic.values()].sort((a, b) => a.topicId - b.topicId);
+}
+
 async function seedTopics(db, topics) {
   const statements = topics.map((topic) => [
     `INSERT INTO topics (id, statement, task_instruction, task_type, claim, reason, themes)
@@ -122,13 +150,25 @@ async function seedGuidance(db, guidance) {
       }
     }
 
-    for (const link of entry.examples ?? []) {
+    // Which reusable examples this topic actually uses, derived from the
+    // reasons rather than authored separately. This is what powers "here are
+    // the examples worth preparing for this prompt".
+    const usedExamples = new Map();
+    for (const side of ['support', 'oppose']) {
+      for (const reason of entry[side] ?? []) {
+        if (!reason.exampleSlug) continue;
+        if (!usedExamples.has(reason.exampleSlug)) {
+          usedExamples.set(reason.exampleSlug, `${side === 'support' ? 'Supports' : 'Opposes'}: ${reason.claim}`);
+        }
+      }
+    }
+    for (const [slug, relevance] of usedExamples) {
       links += 1;
       statements.push([
         `INSERT INTO topic_examples (topic_id, example_slug, relevance)
          VALUES (?, ?, ?)
          ON CONFLICT (topic_id, example_slug) DO UPDATE SET relevance = excluded.relevance`,
-        [entry.topicId, link.slug, link.relevance],
+        [entry.topicId, slug, relevance],
       ]);
     }
   }
@@ -144,7 +184,7 @@ async function main() {
   const topics = await readOptionalJson('topics.json');
   const calibration = await readOptionalJson('calibration.json');
   const examples = await readOptionalJson('examples.json');
-  const guidance = await readOptionalJson('guidance.json');
+  const guidance = await readGuidanceShards();
 
   if (!topics) throw new Error('seed-data/topics.json is missing. Run `npm run extract:pool` first.');
 
