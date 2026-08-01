@@ -109,3 +109,9 @@ CREATE TABLE IF NOT EXISTS essay_scores (
 );
 
 CREATE INDEX IF NOT EXISTS idx_essay_scores_essay ON essay_scores (essay_id);
+
+-- Added with the interface redesign: a display name and test date for the
+-- dashboard, and a flag for essays the writer chose to keep.
+ALTER TABLE users ADD COLUMN display_name TEXT;
+ALTER TABLE users ADD COLUMN test_date TEXT;
+ALTER TABLE essays ADD COLUMN saved INTEGER NOT NULL DEFAULT 0;

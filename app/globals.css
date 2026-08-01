@@ -1,75 +1,46 @@
 /*
- * Material 3 tokens and layout.
+ * Design system.
  *
- * Responsiveness is entirely CSS media queries: the navigation swaps between a
- * bottom bar, a rail and a drawer purely in CSS, so nothing depends on
- * measuring the viewport in JavaScript and there is no flash of the wrong
- * layout on first paint.
+ * Deliberately modelled on the real GRE testing interface: dark application
+ * bar, pink context strip, and a split view with the prompt set in a serif face
+ * on the left and the working area on the right. Practising in something that
+ * looks like the actual test is part of the point, so this is not decoration.
+ *
+ * Responsiveness is pure CSS. Below 820px the split stacks vertically and the
+ * left pane becomes a scrollable prompt block, so the composer keeps a usable
+ * height on a phone.
  */
 
 :root {
-  --md-sys-color-primary: #38608f;
-  --md-sys-color-on-primary: #ffffff;
-  --md-sys-color-primary-container: #d3e4ff;
-  --md-sys-color-on-primary-container: #001d34;
-  --md-sys-color-secondary: #535f70;
-  --md-sys-color-secondary-container: #d7e3f8;
-  --md-sys-color-on-secondary-container: #101c2b;
-  --md-sys-color-tertiary: #6b5778;
-  --md-sys-color-tertiary-container: #f3daff;
-  --md-sys-color-error: #ba1a1a;
-  --md-sys-color-on-error: #ffffff;
-  --md-sys-color-error-container: #ffdad6;
-  --md-sys-color-on-error-container: #410002;
-  --md-sys-color-success: #146c2e;
-  --md-sys-color-success-container: #a6f4b8;
-  --md-sys-color-on-success-container: #002107;
-  --md-sys-color-surface: #f8f9ff;
-  --md-sys-color-surface-container-low: #f1f4fa;
-  --md-sys-color-surface-container: #eaeef5;
-  --md-sys-color-surface-container-high: #e4e8ef;
-  --md-sys-color-on-surface: #191c20;
-  --md-sys-color-on-surface-variant: #43474e;
-  --md-sys-color-outline: #73777f;
-  --md-sys-color-outline-variant: #c3c7cf;
+  --bar-dark: #3b3634;
+  --bar-dark-border: #2b2725;
+  --bar-context: #efe1e6;
+  --bar-context-text: #1b1b1b;
 
-  --md-sys-shape-corner-small: 8px;
-  --md-sys-shape-corner-medium: 12px;
-  --md-sys-shape-corner-large: 16px;
-  --md-sys-shape-corner-xl: 28px;
+  --btn-maroon-top: #7a636e;
+  --btn-maroon-bottom: #64505a;
+  --btn-maroon-border: #8d7783;
+  --btn-blue-top: #5183ba;
+  --btn-blue-bottom: #3c6795;
+  --btn-blue-border: #6d9ac9;
 
-  --lp-nav-height: 80px;
-  --lp-rail-width: 88px;
-  --lp-drawer-width: 260px;
-}
+  --surface: #ffffff;
+  --surface-sunken: #f4f4f4;
+  --surface-toolbar: #d4d4d4;
+  --ink: #111111;
+  --ink-muted: #6b6b6b;
+  --ink-faint: #8f8f8f;
+  --rule: #111111;
+  --rule-soft: #d8d8d8;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --md-sys-color-primary: #a2c9fe;
-    --md-sys-color-on-primary: #003354;
-    --md-sys-color-primary-container: #1d4a76;
-    --md-sys-color-on-primary-container: #d3e4ff;
-    --md-sys-color-secondary: #bbc7db;
-    --md-sys-color-secondary-container: #3b4858;
-    --md-sys-color-on-secondary-container: #d7e3f8;
-    --md-sys-color-tertiary: #d7bee4;
-    --md-sys-color-tertiary-container: #523f5f;
-    --md-sys-color-error: #ffb4ab;
-    --md-sys-color-on-error: #690005;
-    --md-sys-color-error-container: #93000a;
-    --md-sys-color-on-error-container: #ffdad6;
-    --md-sys-color-success: #8bd89f;
-    --md-sys-color-success-container: #005321;
-    --md-sys-color-on-success-container: #a6f4b8;
-    --md-sys-color-surface: #111418;
-    --md-sys-color-surface-container-low: #191c20;
-    --md-sys-color-surface-container: #1d2024;
-    --md-sys-color-surface-container-high: #272a2f;
-    --md-sys-color-on-surface: #e1e2e8;
-    --md-sys-color-on-surface-variant: #c3c7cf;
-    --md-sys-color-outline: #8d9199;
-    --md-sys-color-outline-variant: #43474e;
-  }
+  --accent-good: #1c6b34;
+  --accent-bad: #a32020;
+
+  --bar-height: 78px;
+  --context-height: 52px;
+
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --serif: 'Times New Roman', Times, Georgia, serif;
 }
 
 * { box-sizing: border-box; }
@@ -77,294 +48,349 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
-  font-family: 'Roboto Flex', Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--sans);
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  /* The composer manages its own height; the page itself never scrolls sideways. */
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4 { margin: 0 0 0.5rem; font-weight: 500; line-height: 1.25; }
-h1 { font-size: 1.75rem; }
-h2 { font-size: 1.375rem; }
-h3 { font-size: 1.125rem; }
-p { margin: 0 0 0.75rem; }
-a { color: var(--md-sys-color-primary); }
+button, input, textarea, select { font-family: inherit; }
 
-/* ---- App shell ---------------------------------------------------------- */
+/* ---- Application bar ---------------------------------------------------- */
 
-.lp-shell {
-  display: flex;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
-.lp-main {
-  flex: 1;
-  min-width: 0;
-  padding: 1rem 1rem calc(var(--lp-nav-height) + 1rem);
-}
-
-.lp-content { max-width: 1100px; margin: 0 auto; }
-
-/* Mobile: bottom navigation bar. */
-.lp-nav-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--lp-nav-height);
+.gre-appbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: var(--bar-height);
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  background: var(--md-sys-color-surface-container);
-  border-top: 1px solid var(--md-sys-color-outline-variant);
-  z-index: 20;
-  padding-bottom: env(safe-area-inset-bottom);
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  background: var(--bar-dark);
+  border-bottom: 1px solid var(--bar-dark-border);
 }
 
-.lp-nav-rail, .lp-nav-drawer { display: none; }
-
-.lp-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  flex: 1;
-  padding: 0.5rem 0.25rem;
-  border: none;
-  background: none;
-  color: var(--md-sys-color-on-surface-variant);
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
+.gre-wordmark {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.3125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
   text-decoration: none;
-  border-radius: var(--md-sys-shape-corner-medium);
 }
 
-.lp-nav-item[aria-current='page'] { color: var(--md-sys-color-primary); font-weight: 600; }
-.lp-nav-item .lp-nav-icon { font-size: 1.35rem; line-height: 1; }
+.gre-appbar-actions { display: flex; align-items: center; gap: 0.5rem; }
 
-@media (min-width: 640px) {
-  .lp-main { padding: 1.5rem 1.5rem 2rem; margin-left: var(--lp-rail-width); }
-  .lp-nav-bar { display: none; }
-  .lp-nav-rail {
-    display: flex;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: var(--lp-rail-width);
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding-top: 1.25rem;
-    background: var(--md-sys-color-surface-container-low);
-    border-right: 1px solid var(--md-sys-color-outline-variant);
-    z-index: 20;
-  }
-  .lp-nav-rail .lp-nav-item { flex: 0 0 auto; width: 100%; }
-}
-
-@media (min-width: 1100px) {
-  .lp-main { margin-left: var(--lp-drawer-width); padding: 2rem; }
-  .lp-nav-rail { display: none; }
-  .lp-nav-drawer {
-    display: flex;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: var(--lp-drawer-width);
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 1.5rem 0.75rem;
-    background: var(--md-sys-color-surface-container-low);
-    border-right: 1px solid var(--md-sys-color-outline-variant);
-    z-index: 20;
-  }
-  .lp-nav-drawer .lp-nav-item {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 0.85rem;
-    padding: 0.85rem 1rem;
-    font-size: 0.9375rem;
-    border-radius: var(--md-sys-shape-corner-xl);
-  }
-  .lp-nav-drawer .lp-nav-item[aria-current='page'] {
-    background: var(--md-sys-color-secondary-container);
-    color: var(--md-sys-color-on-secondary-container);
-  }
-}
-
-/* ---- Surfaces ----------------------------------------------------------- */
-
-.lp-card {
-  background: var(--md-sys-color-surface-container-low);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-sys-shape-corner-large);
-  padding: 1.15rem;
-  margin-bottom: 1rem;
-}
-
-.lp-card-tonal {
-  background: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
-  border-color: transparent;
-}
-
-.lp-stack { display: flex; flex-direction: column; gap: 0.75rem; }
-.lp-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
-.lp-spread { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-.lp-muted { color: var(--md-sys-color-on-surface-variant); }
-.lp-small { font-size: 0.85rem; }
-.lp-tiny { font-size: 0.78rem; }
-
-/* ---- Controls ----------------------------------------------------------- */
-
-.lp-btn {
+/* Chunky bevelled buttons, as the real interface uses. */
+.gre-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  min-height: 40px;
-  padding: 0 1.4rem;
-  border-radius: 20px;
-  border: none;
-  font: inherit;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--btn-maroon-border);
+  background: linear-gradient(180deg, var(--btn-maroon-top), var(--btn-maroon-bottom));
+  color: #ffffff;
   font-size: 0.9375rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
   text-decoration: none;
-  transition: filter 120ms ease;
-}
-.lp-btn:hover:not(:disabled) { filter: brightness(1.08); }
-.lp-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-.lp-btn-outlined {
-  background: transparent;
-  color: var(--md-sys-color-primary);
-  border: 1px solid var(--md-sys-color-outline);
-}
-.lp-btn-text { background: transparent; color: var(--md-sys-color-primary); padding: 0 0.75rem; }
-.lp-btn-tonal {
-  background: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
+  white-space: nowrap;
 }
 
-.lp-chip {
+.gre-btn:hover:not(:disabled) { filter: brightness(1.08); }
+.gre-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.gre-btn-primary {
+  border-color: var(--btn-blue-border);
+  background: linear-gradient(180deg, var(--btn-blue-top), var(--btn-blue-bottom));
+}
+
+.gre-btn-light {
+  min-height: 36px;
+  padding: 0 0.85rem;
+  border-radius: 7px;
+  border: 1px solid #b6b6b6;
+  background: linear-gradient(180deg, #fbfbfb, #e6e6e6);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.gre-btn-light:disabled { color: var(--ink-faint); cursor: not-allowed; }
+
+.gre-btn-toolbar {
+  min-height: 32px;
+  padding: 0 0.7rem;
+  border-radius: 6px;
+  border: 1px solid #b0b0b0;
+  background: linear-gradient(180deg, #f2f2f2, #dcdcdc);
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.gre-btn-toolbar:disabled { color: #9a9a9a; cursor: not-allowed; }
+
+/* ---- Context strip ------------------------------------------------------ */
+
+.gre-context {
+  position: sticky;
+  top: var(--bar-height);
+  z-index: 39;
+  min-height: var(--context-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+  background: var(--bar-context);
+  color: var(--bar-context-text);
+  border-bottom: 1px solid var(--rule);
+}
+
+.gre-context-title { font-size: 0.9375rem; font-weight: 700; }
+.gre-context-right { display: flex; align-items: center; gap: 1rem; }
+
+.gre-timer { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.gre-timer-low { color: var(--accent-bad); }
+
+.gre-timer-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  height: 32px;
-  padding: 0 0.85rem;
-  border-radius: 8px;
-  border: 1px solid var(--md-sys-color-outline);
-  background: transparent;
-  color: var(--md-sys-color-on-surface-variant);
-  font: inherit;
-  font-size: 0.85rem;
+  gap: 0.4rem;
+  border: none;
+  background: none;
+  color: var(--bar-context-text);
+  font-size: 0.9375rem;
   cursor: pointer;
-}
-.lp-chip[aria-pressed='true'] {
-  background: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-secondary-container);
-  border-color: transparent;
+  padding: 0.25rem;
 }
 
-.lp-field {
-  width: 100%;
-  min-height: 44px;
-  padding: 0.6rem 0.85rem;
-  border-radius: var(--md-sys-shape-corner-small);
-  border: 1px solid var(--md-sys-color-outline);
-  background: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
-  font: inherit;
+/* ---- Split working area ------------------------------------------------- */
+
+.gre-split {
+  display: flex;
+  align-items: stretch;
+  min-height: calc(100vh - var(--bar-height) - var(--context-height));
+  min-height: calc(100dvh - var(--bar-height) - var(--context-height));
 }
-.lp-field:focus { outline: 2px solid var(--md-sys-color-primary); outline-offset: -1px; }
+
+.gre-pane-left {
+  flex: 0 0 43%;
+  max-width: 43%;
+  padding: 1.5rem 1.75rem;
+  border-right: 1px solid var(--rule);
+  overflow-y: auto;
+}
+
+.gre-pane-right { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* The prompt and the writer's own words are set in serif, matching the test. */
+.gre-prose {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.gre-prose p { margin: 0 0 1rem; }
+.gre-pane-title { font-family: var(--serif); font-size: 1.25rem; margin: 0 0 1rem; font-weight: 400; }
+
+@media (max-width: 820px) {
+  .gre-split { flex-direction: column; min-height: 0; }
+  .gre-pane-left {
+    flex: none;
+    max-width: 100%;
+    max-height: 32vh;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 1rem 1.1rem;
+  }
+  .gre-pane-right { min-height: 62vh; }
+}
 
 /* ---- Composer ----------------------------------------------------------- */
 
-.lp-composer {
-  width: 100%;
-  min-height: 45vh;
-  padding: 1rem;
-  border-radius: var(--md-sys-shape-corner-medium);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background: var(--md-sys-color-surface-container-low);
-  color: var(--md-sys-color-on-surface);
-  font: inherit;
-  font-size: 1rem;
-  line-height: 1.7;
-  resize: vertical;
-}
-.lp-composer:focus { outline: 2px solid var(--md-sys-color-primary); outline-offset: -1px; }
-
-/* Timer and word count stay visible while the on-screen keyboard is open. */
-.lp-composer-status {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+.gre-toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.85rem;
-  margin-bottom: 0.6rem;
-  border-radius: var(--md-sys-shape-corner-medium);
-  background: var(--md-sys-color-surface-container-high);
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--surface-toolbar);
+  border-bottom: 1px solid var(--rule);
+  flex-wrap: wrap;
+}
+
+.gre-toolbar-spacer { flex: 1; }
+.gre-toolbar-count { font-size: 0.8125rem; color: #3d3d3d; font-variant-numeric: tabular-nums; }
+
+.gre-composer {
+  flex: 1;
+  width: 100%;
+  min-height: 55vh;
+  padding: 1.1rem 1.25rem;
+  border: none;
+  outline: none;
+  resize: none;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+/* ---- Result sections ---------------------------------------------------- */
+
+.gre-section { padding: 1.5rem 1.75rem; border-bottom: 1px solid var(--rule); }
+.gre-section:last-child { border-bottom: none; }
+
+.gre-section-title { margin: 0 0 0.75rem; font-size: 1.375rem; font-weight: 700; letter-spacing: -0.01em; }
+
+.gre-grade {
+  font-size: 5rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
-.lp-timer { font-size: 1.25rem; font-weight: 600; }
-.lp-timer-low { color: var(--md-sys-color-error); }
+.gre-grade-sub { font-size: 0.9375rem; color: var(--ink-muted); margin-top: 0.5rem; }
 
-/* ---- Score display ------------------------------------------------------ */
+.gre-block { background: var(--surface-sunken); border-radius: 6px; padding: 1rem 1.15rem; margin-bottom: 0.85rem; }
+.gre-block-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.5rem;
+}
+.gre-block-body { font-family: var(--serif); font-size: 1rem; line-height: 1.55; }
 
-.lp-band {
+.gre-example-head {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.gre-example-title { font-size: 1.375rem; font-weight: 700; margin: 0; }
+.gre-example-stance { font-size: 1.375rem; font-weight: 700; color: var(--ink-faint); margin: 0; }
+
+/* ---- Dashboard ---------------------------------------------------------- */
+
+.gre-page { padding: 2.25rem 1.75rem; max-width: 1180px; }
+@media (max-width: 600px) { .gre-page { padding: 1.5rem 1.1rem; } }
+
+.gre-stats { display: grid; gap: 1.5rem; grid-template-columns: 1fr; margin-bottom: 2.5rem; }
+@media (min-width: 720px) { .gre-stats { grid-template-columns: repeat(3, 1fr); } }
+
+.gre-stat-label { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.35rem; }
+.gre-stat-value {
+  font-size: 3.25rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
-.lp-band-value { font-size: 2.75rem; font-weight: 600; line-height: 1; }
+@media (max-width: 480px) { .gre-stat-value { font-size: 2.5rem; } }
 
-.lp-trait { margin-bottom: 0.7rem; }
-.lp-trait-head { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.25rem; }
-.lp-meter {
-  height: 8px;
-  border-radius: 4px;
-  background: var(--md-sys-color-surface-container-high);
-  overflow: hidden;
+.gre-columns { display: grid; gap: 2rem; grid-template-columns: 1fr; border-top: 1px solid var(--rule-soft); padding-top: 2rem; }
+@media (min-width: 860px) {
+  .gre-columns { grid-template-columns: 1fr 1fr; gap: 0; }
+  .gre-columns > *:first-child { padding-right: 2.5rem; }
+  .gre-columns > * + * { border-left: 1px solid var(--rule-soft); padding-left: 2.5rem; }
 }
-.lp-meter-fill { height: 100%; border-radius: 4px; background: var(--md-sys-color-primary); }
 
-.lp-check { display: flex; gap: 0.7rem; padding: 0.6rem 0; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
-.lp-check:last-child { border-bottom: none; }
-.lp-check-mark { flex: 0 0 1.4rem; font-weight: 700; }
-.lp-pass { color: var(--md-sys-color-success); }
-.lp-fail { color: var(--md-sys-color-error); }
+.gre-col-title { font-size: 1.375rem; font-weight: 700; margin: 0 0 1rem; }
 
-.lp-quote {
-  border-left: 3px solid var(--md-sys-color-outline-variant);
+/* ---- Shared bits -------------------------------------------------------- */
+
+.gre-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.gre-stack { display: flex; flex-direction: column; gap: 0.75rem; }
+.gre-muted { color: var(--ink-muted); }
+.gre-small { font-size: 0.875rem; }
+.gre-tiny { font-size: 0.8125rem; }
+
+.gre-list { margin: 0; padding-left: 1.15rem; }
+.gre-list li { margin-bottom: 0.5rem; }
+
+.gre-improve-item { margin-bottom: 1.1rem; }
+.gre-improve-head { display: flex; gap: 0.5rem; align-items: baseline; font-weight: 600; }
+.gre-improve-mark { font-weight: 800; }
+.gre-pass { color: var(--accent-good); }
+.gre-fail { color: var(--accent-bad); }
+
+.gre-quote {
+  font-family: var(--serif);
+  border-left: 3px solid var(--rule-soft);
   padding-left: 0.75rem;
   margin: 0.4rem 0;
-  color: var(--md-sys-color-on-surface-variant);
-  font-style: italic;
+  color: #444;
 }
 
-/* Wide content scrolls inside itself; the page never scrolls sideways. */
-.lp-scroll-x { overflow-x: auto; max-width: 100%; }
+.gre-field {
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #b6b6b6;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 1rem;
+}
+.gre-field:focus { outline: 2px solid var(--btn-blue-top); outline-offset: -1px; }
 
-.lp-grid-2 { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-@media (min-width: 900px) { .lp-grid-2 { grid-template-columns: 1fr 1fr; } }
+.gre-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 1.25rem;
+  padding: 0.7rem 0.95rem;
+  background: var(--surface-sunken);
+  border-radius: 7px;
+  word-break: break-all;
+}
 
-.lp-sr-only {
+.gre-table { border-collapse: collapse; width: 100%; min-width: 40rem; }
+.gre-table th {
+  text-align: left;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.gre-table td { padding: 0.7rem 0.5rem; border-bottom: 1px solid var(--rule-soft); font-size: 0.9375rem; }
+.gre-scroll-x { overflow-x: auto; max-width: 100%; }
+
+.gre-meter { height: 8px; border-radius: 4px; background: #e4e4e4; overflow: hidden; }
+.gre-meter-fill { height: 100%; background: var(--btn-blue-bottom); }
+
+.gre-chip {
+  min-height: 34px;
+  padding: 0 0.8rem;
+  border-radius: 7px;
+  border: 1px solid #b6b6b6;
+  background: #fff;
+  color: #333;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.gre-chip[aria-pressed='true'] {
+  background: linear-gradient(180deg, var(--btn-blue-top), var(--btn-blue-bottom));
+  border-color: var(--btn-blue-border);
+  color: #fff;
+  font-weight: 600;
+}
+
+.gre-sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }

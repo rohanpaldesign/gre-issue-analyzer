@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import AppBar from '@/components/AppBar';
 import { getSyncCode } from '@/lib/session';
 
 type Topic = {
@@ -35,7 +37,7 @@ export default function TopicsPage() {
 
   const themes = useMemo(() => {
     const all = new Set<string>();
-    for (const topic of topics ?? []) for (const t of topic.themes) all.add(t);
+    for (const topic of topics ?? []) for (const value of topic.themes) all.add(value);
     return [...all].sort();
   }, [topics]);
 
@@ -46,60 +48,77 @@ export default function TopicsPage() {
       (!unattemptedOnly || topic.attempts === 0)
   );
 
-  if (!topics) return <p className="lp-muted">Loading the pool...</p>;
-
-  const attempted = topics.filter((t) => t.attempts > 0).length;
+  const attempted = (topics ?? []).filter((topic) => topic.attempts > 0).length;
 
   return (
-    <div className="lp-stack">
-      <div>
-        <h1>The pool</h1>
-        <p className="lp-small lp-muted">
-          All {topics.length} official ETS Issue topics. {attempted} attempted.
-        </p>
+    <>
+      <AppBar
+        contextTitle={topics ? `Issue pool · ${attempted} of ${topics.length} attempted` : 'Issue pool'}
+        actions={
+          <>
+            <Link href="/" className="gre-btn">
+              Home
+            </Link>
+            <Link href="/write" className="gre-btn gre-btn-primary">
+              Start a new issue
+            </Link>
+          </>
+        }
+      />
+
+      <div className="gre-page">
+        {!topics && <p className="gre-muted">Loading the pool...</p>}
+
+        {topics && (
+          <>
+            <div className="gre-row" style={{ marginBottom: '0.6rem' }}>
+              <button
+                className="gre-chip"
+                aria-pressed={unattemptedOnly}
+                onClick={() => setUnattemptedOnly((value) => !value)}
+              >
+                Not yet attempted
+              </button>
+              {TASK_TYPES.map(([value, label]) => (
+                <button
+                  key={value}
+                  className="gre-chip"
+                  aria-pressed={taskType === value}
+                  onClick={() => setTaskType(taskType === value ? null : value)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="gre-row" style={{ marginBottom: '1.5rem' }}>
+              {themes.map((value) => (
+                <button
+                  key={value}
+                  className="gre-chip"
+                  aria-pressed={theme === value}
+                  onClick={() => setTheme(theme === value ? null : value)}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+
+            <p className="gre-small gre-muted">{filtered.length} topics</p>
+
+            {filtered.map((topic) => (
+              <div className="gre-block" key={topic.id}>
+                <div className="gre-block-label">
+                  Issue {String(topic.id).padStart(2, '0')} · {topic.themes.join(', ')}
+                  {topic.attempts > 0 &&
+                    ` · attempted ${topic.attempts} time${topic.attempts === 1 ? '' : 's'}`}
+                </div>
+                <div className="gre-block-body">{topic.statement}</div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
-
-      <div className="lp-card">
-        <div className="lp-row" style={{ marginBottom: '0.6rem' }}>
-          <button className="lp-chip" aria-pressed={unattemptedOnly} onClick={() => setUnattemptedOnly((v) => !v)}>
-            Not yet attempted
-          </button>
-          {TASK_TYPES.map(([value, label]) => (
-            <button
-              key={value}
-              className="lp-chip"
-              aria-pressed={taskType === value}
-              onClick={() => setTaskType(taskType === value ? null : value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="lp-row">
-          {themes.map((value) => (
-            <button
-              key={value}
-              className="lp-chip"
-              aria-pressed={theme === value}
-              onClick={() => setTheme(theme === value ? null : value)}
-            >
-              {value}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <p className="lp-small lp-muted">{filtered.length} topics</p>
-
-      {filtered.map((topic) => (
-        <div className="lp-card" key={topic.id} style={{ marginBottom: '0.6rem' }}>
-          <div className="lp-tiny lp-muted">
-            {topic.id} · {topic.themes.join(', ')}
-            {topic.attempts > 0 && ` · attempted ${topic.attempts} time${topic.attempts === 1 ? '' : 's'}`}
-          </div>
-          <div style={{ marginTop: '0.3rem' }}>{topic.statement}</div>
-        </div>
-      ))}
-    </div>
+    </>
   );
 }

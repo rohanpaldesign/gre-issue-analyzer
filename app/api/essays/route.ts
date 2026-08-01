@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   }
 
   const essays = await query(
-    `SELECT e.id, e.topic_id, e.stance, e.word_count, e.seconds_used, e.timed, e.assisted,
+    `SELECT e.id, e.topic_id, e.stance, e.word_count, e.seconds_used, e.timed, e.assisted, e.saved,
             e.created_at, t.statement, t.task_type,
             s.holistic, s.position, s.development, s.organization, s.language, s.conventions
      FROM essays e
@@ -49,6 +49,7 @@ export async function GET(request: Request) {
       secondsUsed: e.seconds_used,
       timed: Boolean(e.timed),
       assisted: Boolean(e.assisted),
+      saved: Boolean(e.saved),
       createdAt: e.created_at,
       scores: e.holistic === null ? null : {
         holistic: e.holistic,
@@ -72,8 +73,9 @@ export async function POST(request: Request) {
     stance?: string;
     secondsUsed?: number;
     timed?: boolean;
+    saved?: boolean;
     assisted?: boolean;
-    scores?: { holistic: number; traits: Array<{ key: string; score: number }>; features?: unknown; structure?: unknown };
+    scores?: { holistic: number; traits: Array<{ key: string; score: number }> } | null;
   };
 
   try {
@@ -97,8 +99,8 @@ export async function POST(request: Request) {
   const wordCount = body.essay.trim().split(/\s+/).filter(Boolean).length;
 
   await execute(
-    `INSERT INTO essays (id, user_id, topic_id, stance, body, word_count, seconds_used, timed, assisted)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO essays (id, user_id, topic_id, stance, body, word_count, seconds_used, timed, assisted, saved)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       userId,
@@ -109,6 +111,7 @@ export async function POST(request: Request) {
       Math.round(body.secondsUsed ?? 0),
       body.timed === false ? 0 : 1,
       body.assisted ? 1 : 0,
+      body.saved ? 1 : 0,
     ]
   );
 
@@ -125,7 +128,7 @@ export async function POST(request: Request) {
         trait('organization'),
         trait('language'),
         trait('conventions'),
-        JSON.stringify({ features: body.scores.features ?? null, structure: body.scores.structure ?? null }),
+        JSON.stringify({ full: body.scores }),
       ]
     );
   }

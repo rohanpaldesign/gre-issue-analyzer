@@ -29,8 +29,25 @@ async function main() {
   const sql = await readFile(path.join(here, 'schema.sql'), 'utf8');
   const statements = splitStatements(sql);
 
-  await db.batch(statements.map((s) => [s, []]), 25);
-  console.log(`Applied ${statements.length} schema statements.`);
+  // SQLite has no ALTER TABLE ADD COLUMN IF NOT EXISTS, so a second run trips
+  // over columns that already exist. Those run individually and their duplicate
+  // errors are swallowed; every other failure still surfaces.
+  const additive = statements.filter((s) => /^ALTER TABLE/i.test(s));
+  const core = statements.filter((s) => !/^ALTER TABLE/i.test(s));
+
+  await db.batch(core.map((s) => [s, []]), 25);
+
+  let added = 0;
+  for (const statement of additive) {
+    try {
+      await db.execute(statement);
+      added += 1;
+    } catch (error) {
+      if (!/duplicate column name/i.test(error.message)) throw error;
+    }
+  }
+
+  console.log(`Applied ${core.length} schema statements, ${added} new column(s).`);
 
   const tables = await db.query(
     "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
