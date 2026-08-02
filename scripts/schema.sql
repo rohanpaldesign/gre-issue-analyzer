@@ -115,3 +115,22 @@ CREATE INDEX IF NOT EXISTS idx_essay_scores_essay ON essay_scores (essay_id);
 ALTER TABLE users ADD COLUMN display_name TEXT;
 ALTER TABLE users ADD COLUMN test_date TEXT;
 ALTER TABLE essays ADD COLUMN saved INTEGER NOT NULL DEFAULT 0;
+
+-- Worked model responses, one per topic per stance. Composed from that topic's
+-- authored reasons and concession so the example and the guidance agree.
+CREATE TABLE IF NOT EXISTS model_essays (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  topic_id     INTEGER NOT NULL REFERENCES topics (id) ON DELETE CASCADE,
+  side         TEXT    NOT NULL CHECK (side IN ('support', 'oppose')),
+  intro        TEXT    NOT NULL,
+  support_1    TEXT    NOT NULL,
+  support_2    TEXT    NOT NULL,
+  concession   TEXT    NOT NULL,
+  conclusion   TEXT    NOT NULL,
+  word_count   INTEGER NOT NULL DEFAULT 0,
+  self_score   REAL,
+  created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (topic_id, side)
+);
+
+CREATE INDEX IF NOT EXISTS idx_model_essays_topic ON model_essays (topic_id);

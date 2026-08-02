@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Invalid topic id.' }, { status: 400 });
   }
 
-  const [topics, reasons, concessions, examples] = await pipeline([
+  const [topics, reasons, concessions, examples, modelEssays] = await pipeline([
     ['SELECT * FROM topics WHERE id = ?', [topicId]],
     ['SELECT side, ord, claim, mechanism, example_slug FROM topic_reasons WHERE topic_id = ? ORDER BY side, ord', [topicId]],
     ['SELECT side, concession, rebuttal FROM topic_concessions WHERE topic_id = ?', [topicId]],
@@ -25,6 +25,11 @@ export async function GET(_request: Request, { params }: { params: { id: string 
       `SELECT e.slug, e.title, e.domain, e.summary, e.key_facts, e.moves, x.relevance
        FROM topic_examples x JOIN examples e ON e.slug = x.example_slug
        WHERE x.topic_id = ? ORDER BY e.title`,
+      [topicId],
+    ],
+    [
+      `SELECT side, intro, support_1, support_2, concession, conclusion, word_count
+       FROM model_essays WHERE topic_id = ?`,
       [topicId],
     ],
   ]);
@@ -57,6 +62,21 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     oppose: bySide('oppose'),
     concessions: Object.fromEntries(
       concessions.rows.map((c) => [c.side, { concession: c.concession, rebuttal: c.rebuttal }])
+    ),
+    // Worked responses, keyed by stance. Absent until authored, and the
+    // interface falls back to the reason list when a topic has none yet.
+    modelEssays: Object.fromEntries(
+      modelEssays.rows.map((row) => [
+        row.side,
+        {
+          intro: row.intro,
+          support1: row.support_1,
+          support2: row.support_2,
+          concession: row.concession,
+          conclusion: row.conclusion,
+          wordCount: row.word_count,
+        },
+      ])
     ),
     examples: examples.rows.map((e) => ({
       slug: e.slug,
