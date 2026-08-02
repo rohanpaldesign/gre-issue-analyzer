@@ -134,3 +134,8 @@ CREATE TABLE IF NOT EXISTS model_essays (
 );
 
 CREATE INDEX IF NOT EXISTS idx_model_essays_topic ON model_essays (topic_id);
+
+-- Links a revision to the attempt it reworks. Revisions are excluded from the
+-- score trend: rewriting one essay repeatedly would make the line rise
+-- mechanically and mean nothing.
+ALTER TABLE essays ADD COLUMN revision_of TEXT REFERENCES essays (id);

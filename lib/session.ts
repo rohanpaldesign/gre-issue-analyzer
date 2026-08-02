@@ -43,6 +43,12 @@ export type Draft = {
   secondsUsed: number;
   timed: boolean;
   assisted: boolean;
+  /**
+   * Set when this draft is a rework of an earlier attempt. Carried through the
+   * draft so a refresh mid-revision resumes into revision mode rather than
+   * silently turning into a fresh attempt against the same prompt.
+   */
+  revisionOf?: string | null;
 };
 
 /**
@@ -68,6 +74,23 @@ export function loadDraft(): Draft | null {
 export function clearDraft() {
   if (typeof window === 'undefined') return;
   window.localStorage.removeItem(DRAFT_KEY);
+}
+
+/**
+ * Small persisted preferences, kept beside the draft helpers.
+ *
+ * Used for the word count toggle, which defaults to off because the real test
+ * interface has no counter.
+ */
+export function getPreference(key: string, fallback: boolean): boolean {
+  if (typeof window === 'undefined') return fallback;
+  const stored = window.localStorage.getItem(`gre-issue-analyzer:pref:${key}`);
+  return stored === null ? fallback : stored === 'true';
+}
+
+export function setPreference(key: string, value: boolean) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(`gre-issue-analyzer:pref:${key}`, String(value));
 }
 
 export const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;

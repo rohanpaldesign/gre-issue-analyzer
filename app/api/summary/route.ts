@@ -37,20 +37,34 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: (error as Error).message }, { status: 400 });
   }
 
-  const [profile, counts, scores] = await pipeline([
+  const [profile, counts, scores, revisions] = await pipeline([
     ['SELECT display_name, test_date FROM users WHERE id = ?', [userId]],
     [
       `SELECT (SELECT COUNT(DISTINCT topic_id) FROM essays WHERE user_id = ?) AS attempted,
               (SELECT COUNT(*) FROM topics) AS total`,
       [userId],
     ],
-    // Assisted attempts are excluded: the writer read the arguments first, so
-    // the score does not measure what they can do unaided.
+    // First attempts only.
+    //
+    // Assisted attempts are excluded because the writer read the arguments
+    // first, and revisions because rewriting one essay repeatedly would make
+    // the trend rise mechanically. Neither measures unaided improvement.
     [
-      `SELECT s.holistic, s.position, s.development, s.organization, s.language, s.conventions
+      `SELECT s.holistic, s.position, s.development, s.organization, s.language, s.conventions,
+              e.created_at
        FROM essays e JOIN essay_scores s ON s.essay_id = e.id AND s.source = 'heuristic'
-       WHERE e.user_id = ? AND e.assisted = 0
+       WHERE e.user_id = ? AND e.assisted = 0 AND e.revision_of IS NULL
        ORDER BY e.created_at DESC`,
+      [userId],
+    ],
+    // Every revision paired with the attempt it reworks, so the gain from
+    // revising is visible without contaminating the trend.
+    [
+      `SELECT child.holistic AS after, parent.holistic AS before
+       FROM essays e
+       JOIN essay_scores child ON child.essay_id = e.id AND child.source = 'heuristic'
+       JOIN essay_scores parent ON parent.essay_id = e.revision_of AND parent.source = 'heuristic'
+       WHERE e.user_id = ? AND e.revision_of IS NOT NULL`,
       [userId],
     ],
   ]);
@@ -72,7 +86,20 @@ export async function GET(request: Request) {
     .sort((a, b) => a.mean - b.mean)
     .slice(0, 3);
 
+  const revisionRows = revisions.rows as unknown as Array<{ before: number; after: number }>;
+  const revisionGain =
+    revisionRows.length > 0
+      ? revisionRows.reduce((sum, r) => sum + (r.after - r.before), 0) / revisionRows.length
+      : null;
+
   return NextResponse.json({
+    // Oldest first, which is the direction a trend line reads.
+    trend: [...rows].reverse().map((row) => ({
+      holistic: row.holistic,
+      date: String((row as unknown as { created_at?: string }).created_at ?? '').slice(0, 10),
+    })),
+    revisionGain,
+    revisionCount: revisionRows.length,
     displayName: profile.rows[0]?.display_name ?? null,
     testDate: profile.rows[0]?.test_date ?? null,
     expectedGrade,

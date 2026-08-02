@@ -74,6 +74,7 @@ export async function POST(request: Request) {
     secondsUsed?: number;
     timed?: boolean;
     saved?: boolean;
+    revisionOf?: string | null;
     assisted?: boolean;
     scores?: { holistic: number; traits: Array<{ key: string; score: number }> } | null;
   };
@@ -99,8 +100,8 @@ export async function POST(request: Request) {
   const wordCount = body.essay.trim().split(/\s+/).filter(Boolean).length;
 
   await execute(
-    `INSERT INTO essays (id, user_id, topic_id, stance, body, word_count, seconds_used, timed, assisted, saved)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO essays (id, user_id, topic_id, stance, body, word_count, seconds_used, timed, assisted, saved, revision_of)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       userId,
@@ -112,6 +113,7 @@ export async function POST(request: Request) {
       body.timed === false ? 0 : 1,
       body.assisted ? 1 : 0,
       body.saved ? 1 : 0,
+      body.revisionOf ?? null,
     ]
   );
 

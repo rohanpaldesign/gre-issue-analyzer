@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
   const [essays] = await pipeline([
     [
-      `SELECT e.id, e.topic_id, e.body, e.saved, e.created_at, e.word_count, e.seconds_used,
+      `SELECT e.id, e.topic_id, e.body, e.saved, e.created_at, e.word_count, e.seconds_used, e.revision_of,
               t.statement, t.task_instruction, t.task_type,
               s.holistic, s.payload
        FROM essays e
@@ -46,8 +46,45 @@ export async function GET(request: Request, { params }: { params: { id: string }
     }
   }
 
+  // The attempt this one reworks, so the result page can show what moved.
+  // Read from the stored payload rather than rescored, because the point is to
+  // compare against what was reported at the time.
+  let previous = null;
+  if (row.revision_of) {
+    const [parents] = await pipeline([
+      [
+        `SELECT e.id, e.word_count, e.created_at, s.holistic, s.payload
+         FROM essays e
+         LEFT JOIN essay_scores s ON s.essay_id = e.id AND s.source = 'heuristic'
+         WHERE e.id = ? AND e.user_id = ?`,
+        [row.revision_of, userId],
+      ],
+    ]);
+    const parent = parents.rows[0];
+    if (parent) {
+      let full = null;
+      try {
+        full = parent.payload ? JSON.parse(String(parent.payload)).full ?? null : null;
+      } catch {
+        full = null;
+      }
+      previous = {
+        id: parent.id,
+        wordCount: parent.word_count,
+        createdAt: parent.created_at,
+        holistic: parent.holistic,
+        traits: full?.traits ?? [],
+        failedChecks: (full?.structure?.items ?? [])
+          .filter((item: { passed: boolean }) => !item.passed)
+          .map((item: { id: string; label: string }) => ({ id: item.id, label: item.label })),
+      };
+    }
+  }
+
   return NextResponse.json({
     id: row.id,
+    revisionOf: row.revision_of,
+    previous,
     topicId: row.topic_id,
     essay: row.body,
     saved: Boolean(row.saved),

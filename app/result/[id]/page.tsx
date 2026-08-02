@@ -8,12 +8,22 @@ import AiReview from '@/components/AiReview';
 import { getSyncCode } from '@/lib/session';
 import type { ScoreResult } from '@/lib/scoring';
 
+type Previous = {
+  id: string;
+  holistic: number | null;
+  wordCount: number;
+  traits: Array<{ key: string; label: string; score: number }>;
+  failedChecks: Array<{ id: string; label: string }>;
+};
+
 type EssayRecord = {
   id: string;
   topicId: number;
   essay: string;
   saved: boolean;
   createdAt: string;
+  revisionOf: string | null;
+  previous: Previous | null;
   topic: { id: number; statement: string; taskInstruction: string; taskType: string };
   score: ScoreResult | null;
 };
@@ -81,6 +91,9 @@ export default function ResultPage({ params }: { params: { id: string } }) {
             <button className="gre-btn gre-btn-primary" onClick={saveForLater} disabled={saved}>
               {saved ? 'Saved' : 'Save for later'}
             </button>
+            <Link href={`/write?revise=${record.id}`} className="gre-btn gre-btn-primary">
+              Revise
+            </Link>
           </>
         }
       />
@@ -105,6 +118,10 @@ export default function ResultPage({ params }: { params: { id: string } }) {
                 <div className="gre-grade-sub">{score.band.basis}</div>
               </section>
 
+              {record.previous && (
+                <Comparison previous={record.previous} score={score} />
+              )}
+
               <section className="gre-section">
                 <h2 className="gre-section-title">Areas to improve</h2>
                 <ImproveList score={score} />
@@ -125,6 +142,100 @@ export default function ResultPage({ params }: { params: { id: string } }) {
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * What moved since the attempt this reworks.
+ *
+ * Leads the page because it is the entire payoff of revising. Structure checks
+ * that flipped are called out by name: those are the concrete, repeatable wins.
+ */
+function Comparison({ previous, score }: { previous: Previous; score: ScoreResult }) {
+  const before = previous.holistic;
+  const after = score.holistic;
+  const delta = before === null ? null : after - before;
+
+  const nowFailing = new Set(score.structure.items.filter((i) => !i.passed).map((i) => i.id));
+  const fixed = previous.failedChecks.filter((check) => !nowFailing.has(check.id));
+  const stillFailing = previous.failedChecks.filter((check) => nowFailing.has(check.id));
+
+  const traitDelta = score.traits.map((trait) => {
+    const was = previous.traits.find((t) => t.key === trait.key);
+    return { ...trait, was: was?.score ?? null, change: was ? trait.score - was.score : null };
+  });
+
+  return (
+    <section className="gre-section">
+      <h2 className="gre-section-title">Compared with your previous attempt</h2>
+
+      <div className="gre-row" style={{ alignItems: 'baseline', gap: '1rem', marginBottom: '1rem' }}>
+        <span className="gre-grade" style={{ fontSize: '2.5rem' }}>
+          {before === null ? '--' : before.toFixed(1)}
+        </span>
+        <span className="gre-muted" aria-hidden="true">to</span>
+        <span className="gre-grade" style={{ fontSize: '2.5rem' }}>
+          {after.toFixed(1)}
+        </span>
+        {delta !== null && (
+          <span className={delta > 0 ? 'gre-pass' : delta < 0 ? 'gre-fail' : 'gre-muted'} style={{ fontWeight: 700 }}>
+            {delta > 0 ? '+' : ''}
+            {delta.toFixed(1)}
+          </span>
+        )}
+      </div>
+
+      {fixed.length > 0 && (
+        <div className="gre-improve-item">
+          <div className="gre-improve-head">
+            <span className="gre-improve-mark gre-pass">✓</span>
+            <span>Fixed: {fixed.map((c) => c.label).join(', ')}</span>
+          </div>
+        </div>
+      )}
+
+      {stillFailing.length > 0 && (
+        <div className="gre-improve-item">
+          <div className="gre-improve-head">
+            <span className="gre-improve-mark gre-fail">✕</span>
+            <span>Still open: {stillFailing.map((c) => c.label).join(', ')}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="gre-scroll-x">
+        <table className="gre-table" style={{ minWidth: '26rem' }}>
+          <thead>
+            <tr>
+              <th>Trait</th>
+              <th>Before</th>
+              <th>After</th>
+              <th>Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {traitDelta.map((trait) => (
+              <tr key={trait.key}>
+                <td>{trait.label}</td>
+                <td style={{ fontVariantNumeric: 'tabular-nums' }}>{trait.was ?? '--'}</td>
+                <td style={{ fontVariantNumeric: 'tabular-nums' }}>{trait.score}</td>
+                <td
+                  className={trait.change === null ? '' : trait.change > 0 ? 'gre-pass' : trait.change < 0 ? 'gre-fail' : ''}
+                  style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}
+                >
+                  {trait.change === null ? '--' : `${trait.change > 0 ? '+' : ''}${trait.change.toFixed(1)}`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="gre-tiny gre-muted" style={{ marginTop: '0.75rem', marginBottom: 0 }}>
+        Revisions are kept out of your score trend, since rewriting one essay repeatedly would make
+        the line rise on its own. The gain is reported separately on the dashboard.
+      </p>
+    </section>
   );
 }
 
