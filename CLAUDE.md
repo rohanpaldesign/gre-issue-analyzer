@@ -33,11 +33,20 @@ Content streams also come back in **file order, not reading order**. The pool PD
 
 ### Scoring
 
-Five trait scorers matching the ETS rubric dimensions, blended into a holistic score snapped to the 0.5 grid ETS reports. Weights are fitted by `scripts/calibrate.mjs` against six ETS-scored essays (levels 1 to 6) with official rater commentary.
+Two things with different jobs. **Raw features predict** the holistic score through a ridge regression fitted on PERSUADE. **The five traits explain**, driving the feedback, and are deliberately kept out of that regression: including both made them collinear with their own inputs and scrambled every sign.
 
-**Calibration is a gate, not a formality.** Every calibration essay must land within 0.5 of its official score, and rank order across levels 1 to 6 must hold. If a change to a trait scorer breaks that, the change is wrong.
+Anchored onto ETS's scale by an affine fit over 11 officially scored essays, then held down where needed by `lib/scoring/ceiling.mjs`.
 
-The heuristic engine scores surface correlates of quality, not argument merit. Do not add UI copy claiming otherwise. The optional Gemini rater covers reasoning quality; the app must stay fully functional when `GEMINI_API_KEY` is unset.
+**The ceiling is not a hack.** The regression is fitted on grade 6 to 12 writing where 380 words is a normal length, so it cannot learn that 380 words is short for the GRE, and 11 anchors cannot correct a whole-distribution shift. ETS's published word counts run 127 at score 1 to 646 and 935 at score 6, so a cap is applied under 400, 300 and 200 words, and the interface says so whenever it binds. Removing it reintroduces a 382 word essay scoring 6.0.
+
+**Calibration is a gate that refuses to write weights.** It checks held-out agreement, padding neutrality, known feature signs, leave-one-out error and bias against the ETS anchors, that predicted score rises across word-count buckets, and a stored regression fixture. Error is reported **leave-one-out**: measuring against the same essays the anchor was fitted to is what let an over-rating scorer pass.
+
+Two approaches were measured and rejected. Do not retry without new evidence:
+
+- **AI-relabelled corpus.** `scripts/label-corpus.mjs --validate` scores the 11 ETS essays first. It failed at MAE 0.591 and bias +0.318, over-rating weak essays exactly as the heuristic does, so its labels are not a standard to fit against.
+- **A linear length curve.** Fixed short-essay ranking but cost real agreement and reopened the padding hole, because `openerVariety` fits negative (short essays trivially have unique openers) and padding lowers it.
+
+The engine scores surface correlates of quality, not argument merit. A 465 word vacuous essay still gets 4.0 where ETS would likely say 2 or 3. Do not add UI copy claiming otherwise; the Gemini rater is what judges reasoning, and the app must stay fully functional when `GEMINI_API_KEY` is unset.
 
 ### Task types
 
