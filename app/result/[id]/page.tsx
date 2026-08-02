@@ -97,9 +97,12 @@ export default function ResultPage({ params }: { params: { id: string } }) {
               <section className="gre-section">
                 <h2 className="gre-section-title">Grade</h2>
                 <div className="gre-grade">{score.holistic.toFixed(1)}</div>
-                <div className="gre-grade-sub">
-                  Most likely {score.band.low} to {score.band.high}. {score.band.basis}
-                </div>
+                {score.lengthCeiling && (
+                  <div className="gre-grade-sub" style={{ color: 'var(--accent-bad)' }}>
+                    {score.lengthCeiling}
+                  </div>
+                )}
+                <div className="gre-grade-sub">{score.band.basis}</div>
               </section>
 
               <section className="gre-section">

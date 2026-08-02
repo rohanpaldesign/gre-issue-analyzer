@@ -31,6 +31,8 @@ export type ScoreResult = {
   tooShort: boolean;
   message?: string;
   holistic: number;
+  /** Set when the score was held down by the short-response ceiling. */
+  lengthCeiling: string | null;
   band: { low: number; high: number; halfWidth: number; basis: string };
   traits: TraitScore[];
   structure: {
